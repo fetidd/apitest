@@ -48,7 +48,6 @@ def create_tests(path):
             section_tests = section_data["cases"]
             for test_dict in section_tests:
                 defaults = dict(**_defaults)
-                cprint("blue", defaults)
                 test_dict = deep_merge_dicts(defaults, test_dict)
                 test = Test(section=section, **test_dict)
                 section[1].append(test)
@@ -81,6 +80,7 @@ def run_test(test: Test, session: requests.Session):
     cprint("dark_gray", "{}: {} {} {}".format(test.name, test.path, test.description[:50], request_kw))
     fn = getattr(session, test.method.lower())
     res = fn("http://localhost:8080" + test.path, **request_kw)
+    cprint("dark_gray", res.content)
     is_issue = False
     if "status_code" in exp:
         if exp["status_code"] != res.status_code:
