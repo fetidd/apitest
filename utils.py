@@ -8,7 +8,9 @@ _colors = {"BLACK": '\033[30m',
 "MAGENTA": '\033[35m',
 "CYAN": '\033[36m',
 "LIGHT_GRAY": '\033[37m',
+"LIGHT_GREY": '\033[37m',
 "DARK_GRAY": '\033[90m',
+"DARK_GREY": '\033[90m',
 "BRIGHT_RED": '\033[91m',
 "BRIGHT_GREEN": '\033[92m',
 "BRIGHT_YELLOW": '\033[93m',
@@ -26,8 +28,10 @@ BACKGROUND_YELLOW = '\033[43m' # orange on some systems
 BACKGROUND_BLUE = '\033[44m'
 BACKGROUND_MAGENTA = '\033[45m'
 BACKGROUND_CYAN = '\033[46m'
-BACKGROUND_LIGHT_GRAY = '\third-party033[47m'
+BACKGROUND_LIGHT_GRAY = '\033[47m'
 BACKGROUND_DARK_GRAY = '\033[100m'
+BACKGROUND_LIGHT_GREY = '\033[47m'
+BACKGROUND_DARK_GREY = '\033[100m'
 BACKGROUND_BRIGHT_RED = '\033[101m'
 BACKGROUND_BRIGHT_GREEN = '\033[102m'
 BACKGROUND_BRIGHT_YELLOW = '\033[103m'
@@ -37,15 +41,14 @@ BACKGROUND_BRIGHT_CYAN = '\033[106m'
 BACKGROUND_WHITE = '\033[107m'
 
 def cprint(color, *args, **kw):
-    color = _colors[color.upper()]
     if kw.pop("pretty", False):
-        print(color, end="")
         pprint.pprint(args[0])
-        print(RESET, **kw)
     else:
-        print(color, end="")
-        print(*args, end="")
-        print(RESET, **kw)
+        print(cformat(color, *args))
+        
+def cformat(color, *args, sep=" ", **kw):
+    color = _colors[color.upper()]
+    return color + sep.join([str(a) for a in args]) + RESET
         
 def header(text, color="WHITE"):
     cprint(color, "\n####{}####".format("#"*len(text)))
