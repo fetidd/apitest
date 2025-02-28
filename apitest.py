@@ -84,7 +84,7 @@ def run_tests(tests):
     for section_name, tests in tests:
         if not tests:
             continue
-        subheader(section_name, "blue")
+        # subheader(section_name, "blue")
         with requests.Session() as session:
             for test in tests:
                 is_issue = run_test(test, session)
@@ -99,7 +99,6 @@ def run_test(test: Test, session: requests.Session):
     request_kw = {}
     if test.json:
         request_kw["json"] = test.json
-    print("{}: {}".format(test.name, colorise("dark_gray", test.description[:50])))
     fn = getattr(session, test.method.lower())
     res = fn("http://localhost:8080" + test.path, **request_kw)
     is_issue = False
@@ -115,13 +114,18 @@ def run_test(test: Test, session: requests.Session):
         if exp_json != returned_json:
             test.result["json"] = "{} != {}".format(exp_json, returned_json)
             is_issue = True
+    print("{}: {}".format(colorise("red" if is_issue else "green", test.name), test.description[:50]))
     return is_issue
 
 def main(args):
     all_issues = []
     all_success = []
     try:
-        server = subprocess.Popen(args.file)
+        popen_kw = {}
+        if not args.verbose:
+            popen_kw["stdout"] = open(os.devnull, 'wb')
+            popen_kw["stderr"] = open(os.devnull, 'wb')
+        server = subprocess.Popen(args.bin, **popen_kw)
         time.sleep(0.5)
         tests = create_tests(args.test_path)
         success, issues = run_tests(tests)
@@ -132,7 +136,7 @@ def main(args):
         header("ERROR", "magenta")
         cprint("red", "\n".join(traceback.format_tb(e.__traceback__)))
         cprint("red", e)
-        process_name = args.file.split("/")[-1]
+        process_name = args.bin.split("/")[-1]
         cprint("dark_gray", "killing all {} processes...".format(process_name))
         subprocess.run(["killall", process_name]) # kill the process because we won't have hit the terminate
         sys.exit(1)
@@ -154,7 +158,7 @@ def get_script_path():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file", action="store", default="{}/testBuild".format(get_script_path()))
+    parser.add_argument("--bin", action="store", default="{}/testBuild".format(get_script_path()))
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument("--test_path", action="store", default="{}/tests.yaml".format(get_script_path()))
     args = parser.parse_args(sys.argv[1:])
