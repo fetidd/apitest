@@ -112,9 +112,12 @@ def run_test(test: Test, session: requests.Session):
         except:
             returned_json = None
         if exp_json != returned_json:
-            test.result["json"] = "{} != {}".format(exp_json, returned_json)
+            test.result["json"] = returned_json
+            test.result["expected_json"] = exp_json
             is_issue = True
     print("{}: {}".format(colorise("red" if is_issue else "green", test.name), test.description[:50]))
+    if is_issue:
+        print(colorise("dark_grey", yaml.dump(test.result)), end="")
     return is_issue
 
 def main(args):
@@ -137,13 +140,14 @@ def main(args):
         cprint("red", "\n".join(traceback.format_tb(e.__traceback__)))
         cprint("red", e)
         process_name = args.bin.split("/")[-1]
-        cprint("dark_gray", "killing all {} processes...".format(process_name))
+        cprint("dark_gray", "attempting to kill all {} processes...".format(process_name))
         subprocess.run(["killall", process_name]) # kill the process because we won't have hit the terminate
         sys.exit(1)
     if all_issues:
-        header("FAILED", "red")
-        for issue in all_issues:
-            cprint("yellow", issue.as_dict(), pretty=True)
+        header(f"{len(all_issues)} FAILED", "red")
+        if args.verbose:
+            for issue in all_issues:
+                cprint("yellow", yaml.dump(issue.as_dict()))
         print()
         sys.exit(1)
     else:
@@ -151,6 +155,7 @@ def main(args):
         if args.verbose:
             for success in all_success:
                 cprint("green", success)
+        print()
         sys.exit(0)
         
 def get_script_path():
@@ -162,4 +167,5 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument("--test_path", action="store", default="{}/tests.yaml".format(get_script_path()))
     args = parser.parse_args(sys.argv[1:])
+    print()
     main(args)

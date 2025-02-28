@@ -1,5 +1,3 @@
-import pprint
-
 _colors = {"BLACK": '\033[30m',
 "RED": '\033[31m',
 "GREEN": '\033[32m',
@@ -41,10 +39,7 @@ BACKGROUND_BRIGHT_CYAN = '\033[106m'
 BACKGROUND_WHITE = '\033[107m'
 
 def cprint(color, *args, **kw):
-    if kw.pop("pretty", False):
-        pprint.pprint(args[0])
-    else:
-        print(colorise(color, *args))
+    print(colorise(color, *args), **kw)
         
 def colorise(color, *args, sep=" ", **kw):
     color = _colors[color.upper()]
