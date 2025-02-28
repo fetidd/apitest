@@ -99,7 +99,7 @@ def run_test(test: Test, session: requests.Session):
     request_kw = {}
     if test.json:
         request_kw["json"] = test.json
-    print("{}: {}".format(test.name, color("dark_gray", test.description[:50])))
+    print("{}: {}".format(test.name, colorise("dark_gray", test.description[:50])))
     fn = getattr(session, test.method.lower())
     res = fn("http://localhost:8080" + test.path, **request_kw)
     is_issue = False

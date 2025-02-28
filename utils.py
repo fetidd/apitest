@@ -44,9 +44,9 @@ def cprint(color, *args, **kw):
     if kw.pop("pretty", False):
         pprint.pprint(args[0])
     else:
-        print(color(color, *args))
+        print(colorise(color, *args))
         
-def color(color, *args, sep=" ", **kw):
+def colorise(color, *args, sep=" ", **kw):
     color = _colors[color.upper()]
     return color + sep.join([str(a) for a in args]) + RESET
         
