@@ -1,14 +1,16 @@
-import os
-import requests
 import argparse
-import sys
+import os
 import subprocess
-from utils import *
+import sys
 import time
-import yaml
 import traceback
 from copy import deepcopy
-import logging
+
+import requests
+import yaml
+
+from utils import cprint, deep_merge_dicts, colorise, header
+import dotenv
 
 TEST_ORDER = ("health", "transaction")
 
@@ -109,7 +111,7 @@ def run_test(test: Test, session: requests.Session):
     if exp_json := exp.get("json"):
         try:
             returned_json = res.json()
-        except:
+        except Exception:
             returned_json = None
         if exp_json != returned_json:
             test.result["json"] = returned_json
@@ -124,7 +126,11 @@ def main(args):
     all_issues = []
     all_success = []
     try:
-        popen_kw = {}
+        popen_kw = {
+            "env": {
+                "DATABASE_NAME": "account"
+            }
+        }
         if not args.verbose:
             popen_kw["stdout"] = open(os.devnull, 'wb')
             popen_kw["stderr"] = open(os.devnull, 'wb')
@@ -162,10 +168,11 @@ def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
 
 if __name__ == "__main__":
+    dotenv.load_dotenv()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--bin", action="store", default="{}/testBuild".format(get_script_path()))
+    parser.add_argument("--bin", action="store", default=os.getenv("BIN_PATH", "{}/testBuild".format(get_script_path())))
     parser.add_argument("--verbose", action="store_true", default=False)
-    parser.add_argument("--test_path", action="store", default="{}/tests.yaml".format(get_script_path()))
+    parser.add_argument("--test_path", action="store", default=os.getenv("TEST_PATH", "{}/tests.yaml".format(get_script_path())))
     args = parser.parse_args(sys.argv[1:])
     print()
     main(args)
